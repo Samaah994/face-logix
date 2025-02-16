@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/layout/Navbar";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import FaceRecognition from "./pages/FaceRecognition";
 import UserManagement from "./pages/UserManagement";
@@ -25,6 +26,7 @@ const App = () => (
         <main className="pt-16">
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/face-recognition" element={<FaceRecognition />} />
             <Route path="/user-management" element={<UserManagement />} />

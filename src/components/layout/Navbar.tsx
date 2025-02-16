@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Camera,
   Users,
@@ -8,10 +8,34 @@ import {
   FileText,
   LayoutDashboard,
   Home,
+  LogOut,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    // Check initial auth state
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      if (!session && location.pathname !== "/") {
+        navigate("/auth");
+      }
+    });
+  }, [navigate, location]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -29,10 +53,12 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center space-x-2">
-            <span className="font-heading font-bold text-xl">FaceLogix</span>
+            <span className="font-heading font-bold text-xl">
+              Face Attendance System
+            </span>
           </Link>
           <div className="hidden md:flex items-center space-x-4">
-            {navItems.map(({ path, icon: Icon, label }) => (
+            {isAuthenticated && navItems.map(({ path, icon: Icon, label }) => (
               <Link key={path} to={path}>
                 <Button
                   variant={isActive(path) ? "secondary" : "ghost"}
@@ -43,6 +69,16 @@ const Navbar = () => {
                 </Button>
               </Link>
             ))}
+            {isAuthenticated && (
+              <Button
+                variant="ghost"
+                onClick={handleLogout}
+                className="flex items-center space-x-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>
