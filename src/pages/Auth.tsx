@@ -38,23 +38,39 @@ const registerSchema = z.object({
   department: z.enum(["IT", "HR", "Finance", "Marketing", "Operations", "Sales"]),
 });
 
+type LoginFormData = z.infer<typeof loginSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
+
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const loginForm = useForm<z.infer<typeof loginSchema>>({
+  const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
-  const registerForm = useForm<z.infer<typeof registerSchema>>({
+  const registerForm = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      fullName: "",
+      department: undefined,
+    },
   });
 
-  const onLogin = async (data: z.infer<typeof loginSchema>) => {
+  const onLogin = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signInWithPassword(data);
+      const { error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
       if (error) throw error;
       navigate("/dashboard");
     } catch (error: any) {
@@ -68,7 +84,7 @@ const Auth = () => {
     }
   };
 
-  const onRegister = async (data: z.infer<typeof registerSchema>) => {
+  const onRegister = async (data: RegisterFormData) => {
     try {
       setIsLoading(true);
       const { error: authError } = await supabase.auth.signUp({
@@ -103,17 +119,21 @@ const Auth = () => {
   };
 
   return (
-    <div className="container flex items-center justify-center min-h-screen">
-      <Card className="w-full max-w-lg">
+    <div className="container flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
+      <Card className="w-full max-w-lg shadow-xl bg-white/80 backdrop-blur-sm border-white/20">
         <CardHeader className="space-y-2 text-center">
-          <CardTitle className="text-3xl">Face Attendance System</CardTitle>
-          <CardDescription className="text-xl text-primary">Made Simple</CardDescription>
+          <CardTitle className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            Face Attendance System
+          </CardTitle>
+          <CardDescription className="text-xl font-semibold text-gray-600 dark:text-gray-300">
+            Made Simple
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
+          <Tabs defaultValue="login" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login" className="text-lg">Login</TabsTrigger>
+              <TabsTrigger value="register" className="text-lg">Register</TabsTrigger>
             </TabsList>
             <TabsContent value="login">
               <Form {...loginForm}>
@@ -123,9 +143,13 @@ const Auth = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel className="text-gray-700 dark:text-gray-300">Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter your email" {...field} />
+                          <Input 
+                            placeholder="Enter your email" 
+                            className="bg-white/50 backdrop-blur-sm" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -136,15 +160,24 @@ const Auth = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel className="text-gray-700 dark:text-gray-300">Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Enter your password" {...field} />
+                          <Input 
+                            type="password" 
+                            placeholder="Enter your password" 
+                            className="bg-white/50 backdrop-blur-sm" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white" 
+                    disabled={isLoading}
+                  >
                     {isLoading ? "Loading..." : "Login"}
                   </Button>
                 </form>
@@ -158,9 +191,13 @@ const Auth = () => {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full Name</FormLabel>
+                        <FormLabel className="text-gray-700 dark:text-gray-300">Full Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter your full name" {...field} />
+                          <Input 
+                            placeholder="Enter your full name" 
+                            className="bg-white/50 backdrop-blur-sm" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -171,9 +208,13 @@ const Auth = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel className="text-gray-700 dark:text-gray-300">Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter your email" {...field} />
+                          <Input 
+                            placeholder="Enter your email" 
+                            className="bg-white/50 backdrop-blur-sm" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -184,9 +225,14 @@ const Auth = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel className="text-gray-700 dark:text-gray-300">Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Enter your password" {...field} />
+                          <Input 
+                            type="password" 
+                            placeholder="Enter your password" 
+                            className="bg-white/50 backdrop-blur-sm" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -197,10 +243,10 @@ const Auth = () => {
                     name="department"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Department</FormLabel>
+                        <FormLabel className="text-gray-700 dark:text-gray-300">Department</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="bg-white/50 backdrop-blur-sm">
                               <SelectValue placeholder="Select your department" />
                             </SelectTrigger>
                           </FormControl>
@@ -217,7 +263,11 @@ const Auth = () => {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white" 
+                    disabled={isLoading}
+                  >
                     {isLoading ? "Loading..." : "Register"}
                   </Button>
                 </form>
