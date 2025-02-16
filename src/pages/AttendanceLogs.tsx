@@ -21,6 +21,8 @@ import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { Button } from "@/components/ui/button";
 
+type Department = "IT" | "HR" | "Finance" | "Marketing" | "Operations" | "Sales";
+
 type AttendanceRecord = {
   id: string;
   user_id: string;
@@ -29,13 +31,13 @@ type AttendanceRecord = {
   status: "present" | "absent" | "late";
   users: {
     full_name: string;
-    department: string;
+    department: Department;
   };
 };
 
 const AttendanceLogs = () => {
   const [timeRange, setTimeRange] = useState<"weekly" | "monthly">("weekly");
-  const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
+  const [selectedDepartment, setSelectedDepartment] = useState<"all" | Department>("all");
 
   const getDateRange = () => {
     const today = new Date();
@@ -95,6 +97,18 @@ const AttendanceLogs = () => {
     return acc;
   }, []);
 
+  const chartConfig = {
+    present: {
+      color: "#22c55e",
+    },
+    absent: {
+      color: "#ef4444",
+    },
+    late: {
+      color: "#f59e0b",
+    },
+  };
+
   return (
     <div className="container mx-auto p-8 space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -112,7 +126,7 @@ const AttendanceLogs = () => {
               <SelectItem value="monthly">Monthly</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+          <Select value={selectedDepartment} onValueChange={(value: "all" | Department) => setSelectedDepartment(value)}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Department" />
             </SelectTrigger>
@@ -175,7 +189,7 @@ const AttendanceLogs = () => {
         </CardHeader>
         <CardContent>
           <div className="h-[400px] mt-4">
-            <ChartContainer>
+            <ChartContainer config={chartConfig}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
