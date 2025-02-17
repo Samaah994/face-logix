@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload } from "lucide-react";
-import * as XLSX from 'xlsx';
+import { read, utils } from 'xlsx';
 import { supabase } from "@/integrations/supabase/client";
 
 const BulkUpload = () => {
@@ -17,10 +17,10 @@ const BulkUpload = () => {
     reader.onload = async (e) => {
       try {
         const data = e.target?.result;
-        const workbook = XLSX.read(data, { type: 'binary' });
+        const workbook = read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(sheet);
+        const jsonData = utils.sheet_to_json(sheet);
 
         // Process each row and insert into database
         for (const row of jsonData) {
