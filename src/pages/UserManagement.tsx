@@ -42,19 +42,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { User, Department, UserRole } from "@/types";
 
-type UserRole = 'admin' | 'user' | 'supervisor';
-
-type User = {
-  id: string;
-  full_name: string;
-  email: string;
-  department: string;
-  role: UserRole;
-  created_at: string;
-};
-
-const departments = ['IT', 'HR', 'Finance', 'Marketing', 'Operations', 'Sales'];
+const departments: Department[] = ['IT', 'HR', 'Finance', 'Marketing', 'Operations', 'Sales'];
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -265,7 +255,7 @@ const UserManagement = () => {
               <Label htmlFor="department">Department</Label>
               <Select
                 value={editedUser.department}
-                onValueChange={(value) => setEditedUser({ ...editedUser, department: value })}
+                onValueChange={(value: Department) => setEditedUser({ ...editedUser, department: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select department" />
