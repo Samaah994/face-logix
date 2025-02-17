@@ -6,10 +6,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload } from "lucide-react";
 import { read, utils } from 'xlsx';
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const BulkUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const processExcelFile = async (file: File) => {
     const reader = new FileReader();
@@ -22,21 +24,50 @@ const BulkUpload = () => {
         const sheet = workbook.Sheets[sheetName];
         const jsonData = utils.sheet_to_json(sheet);
 
+        const { data: session } = await supabase.auth.getSession();
+        if (!session.session) {
+          toast({
+            title: "Error",
+            description: "Please login to upload users",
+            variant: "destructive",
+          });
+          navigate('/auth');
+          return;
+        }
+
+        let successCount = 0;
+        let errorCount = 0;
+
         // Process each row and insert into database
-        for (const row of jsonData) {
+        for (const row of jsonData as any[]) {
+          if (!row['Full Name'] || !row['Email'] || !row['Department']) {
+            errorCount++;
+            continue;
+          }
+
           const { error } = await supabase.from('users').insert({
             full_name: row['Full Name'],
             email: row['Email'],
             department: row['Department'],
           });
 
-          if (error) throw error;
+          if (error) {
+            console.error('Error inserting row:', error);
+            errorCount++;
+          } else {
+            successCount++;
+          }
         }
 
         toast({
-          title: "Success",
-          description: `Successfully uploaded ${jsonData.length} records`,
+          title: "Upload Complete",
+          description: `Successfully uploaded ${successCount} users. ${errorCount} errors.`,
+          variant: errorCount > 0 ? "destructive" : "default",
         });
+
+        if (successCount > 0) {
+          navigate('/user-management');
+        }
       } catch (error: any) {
         toast({
           title: "Error",
