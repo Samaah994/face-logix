@@ -52,6 +52,7 @@ export type Database = {
           face_data: Json | null
           full_name: string
           id: string
+          role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
         Insert: {
@@ -61,6 +62,7 @@ export type Database = {
           face_data?: Json | null
           full_name: string
           id?: string
+          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Update: {
@@ -70,6 +72,7 @@ export type Database = {
           face_data?: Json | null
           full_name?: string
           id?: string
+          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Relationships: []
@@ -83,6 +86,7 @@ export type Database = {
     }
     Enums: {
       department: "IT" | "HR" | "Finance" | "Marketing" | "Operations" | "Sales"
+      user_role: "admin" | "user" | "supervisor"
     }
     CompositeTypes: {
       [_ in never]: never

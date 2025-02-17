@@ -23,21 +23,44 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+
+type UserRole = 'admin' | 'user' | 'supervisor';
 
 type User = {
   id: string;
   full_name: string;
   email: string;
   department: string;
+  role: UserRole;
   created_at: string;
 };
+
+const departments = ['IT', 'HR', 'Finance', 'Marketing', 'Operations', 'Sales'];
 
 const UserManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [editedUser, setEditedUser] = useState<Partial<User>>({});
 
   // Fetch users
   const { data: users, isLoading } = useQuery({
@@ -78,6 +101,58 @@ const UserManagement = () => {
     },
   });
 
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: async (user: Partial<User> & { id: string }) => {
+      const { error } = await supabase
+        .from('users')
+        .update({
+          full_name: user.full_name,
+          email: user.email,
+          department: user.department,
+          role: user.role,
+        })
+        .eq('id', user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setSelectedUser(null);
+      toast({
+        title: "Success",
+        description: "User updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditClick = (user: User) => {
+    setSelectedUser(user);
+    setEditedUser(user);
+  };
+
+  const handleEditSubmit = () => {
+    if (!selectedUser?.id || !editedUser.full_name || !editedUser.email || !editedUser.department) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateUserMutation.mutate({
+      id: selectedUser.id,
+      ...editedUser,
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -100,6 +175,7 @@ const UserManagement = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Department</TableHead>
+                  <TableHead>Role</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -109,12 +185,13 @@ const UserManagement = () => {
                     <TableCell>{user.full_name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.department}</TableCell>
+                    <TableCell className="capitalize">{user.role}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => setSelectedUser(user)}
+                          onClick={() => handleEditClick(user)}
                           className="h-8 w-8 text-green-600 hover:text-green-700"
                         >
                           <Pencil className="h-4 w-4" />
@@ -157,6 +234,81 @@ const UserManagement = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={!!selectedUser} onOpenChange={(open) => !open && setSelectedUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Make changes to the user's information here. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                value={editedUser.full_name || ''}
+                onChange={(e) => setEditedUser({ ...editedUser, full_name: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={editedUser.email || ''}
+                onChange={(e) => setEditedUser({ ...editedUser, email: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="department">Department</Label>
+              <Select
+                value={editedUser.department}
+                onValueChange={(value) => setEditedUser({ ...editedUser, department: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept} value={dept}>
+                      {dept}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="role">Role</Label>
+              <Select
+                value={editedUser.role}
+                onValueChange={(value: UserRole) => setEditedUser({ ...editedUser, role: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="supervisor">Supervisor</SelectItem>
+                  <SelectItem value="user">User</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedUser(null)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleEditSubmit}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
