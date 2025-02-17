@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Camera, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import * as faceapi from "face-api.js";
@@ -21,17 +21,19 @@ const FaceRecognition = () => {
   useEffect(() => {
     const loadModels = async () => {
       try {
+        console.log('Starting to load models...');
         await Promise.all([
           faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
           faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
           faceapi.nets.ssdMobilenetv1.loadFromUri('/models')
         ]);
+        console.log('Models loaded successfully');
         setIsLoading(false);
       } catch (error) {
         console.error('Error loading face recognition models:', error);
         toast({
           title: "Error",
-          description: "Failed to load face recognition models",
+          description: "Failed to load face recognition models. Please check the console for details.",
           variant: "destructive",
         });
       }
