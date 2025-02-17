@@ -71,7 +71,7 @@ const Auth = () => {
         password: data.password,
       });
       if (error) throw error;
-      navigate("/dashboard");
+      navigate("/welcome");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -89,24 +89,30 @@ const Auth = () => {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
+        options: {
+          data: {
+            full_name: data.fullName,
+          },
+        },
       });
       if (authError) throw authError;
 
-      const { error: profileError } = await supabase.from("users").insert({
-        id: authData.user?.id,
-        email: data.email,
-        full_name: data.fullName,
-        department: data.department,
-      });
-      
-      if (profileError) throw profileError;
+      if (authData?.user?.id) {
+        const { error: profileError } = await supabase.from("users").insert({
+          id: authData.user.id,
+          email: data.email,
+          full_name: data.fullName,
+          department: data.department,
+        });
+        
+        if (profileError) throw profileError;
+      }
 
       toast({
         title: "Success",
         description: "Account created successfully. Please check your email to verify your account.",
       });
       
-      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Error",

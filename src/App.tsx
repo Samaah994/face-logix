@@ -8,6 +8,7 @@ import Navbar from "./components/layout/Navbar";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Welcome from "./pages/Welcome";
 import FaceRecognition from "./pages/FaceRecognition";
 import UserManagement from "./pages/UserManagement";
 import BulkUpload from "./pages/BulkUpload";
@@ -27,6 +28,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/welcome" element={<Welcome />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/face-recognition" element={<FaceRecognition />} />
             <Route path="/user-management" element={<UserManagement />} />
